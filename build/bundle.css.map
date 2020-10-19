@@ -1,0 +1,12 @@
+{
+  "version": 3,
+  "file": "bundle.css",
+  "sources": [
+    "App.svelte"
+  ],
+  "sourcesContent": [
+    "<script>\n  let name = \"World\";\n</script>\n\n<style>\nheader {\n  font-size: 400%;\n}\n</style>\n\n<header>Hello {name}!</header>\n"
+  ],
+  "names": [],
+  "mappings": "AAKA,MAAM,eAAC,CAAC,AACN,SAAS,CAAE,IAAI,AACjB,CAAC"
+}
