@@ -1,8 +1,10 @@
 import svelte from 'rollup-plugin-svelte';
+import { spawn } from 'node:child_process';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import livereload from 'rollup-plugin-livereload';
-import { terser } from 'rollup-plugin-terser';
+import css from 'rollup-plugin-css-only';
+import livereload from 'livereload';
+import terser from '@rollup/plugin-terser';
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -17,13 +19,17 @@ export default {
   plugins: [
   	svelte({
   		// enable run-time checks when not in production
-  		dev: !production,
+		compilerOptions: {
+			dev: !production,
+			compatibility: {
+				componentApi: 4
+			}
+		},
   		// we'll extract any component CSS out into
   		// a separate file - better for performance
-  		css: css => {
-  			css.write('bundle.css');
-  		}
+		emitCss: true
   	}),
+	css({ output: 'bundle.css' }),
 
   	// If you have external dependencies installed from
   	// npm, you'll most likely need these plugins. In
@@ -42,7 +48,7 @@ export default {
 
   	// Watch the `public` directory and refresh the
   	// browser on changes when not in production
-  	!production && livereload('public'),
+	!production && reload('public'),
 
   	// If we're building for production (npm run build
   	// instead of npm run dev), minify
@@ -61,11 +67,25 @@ function serve() {
   		if (!started) {
   			started = true;
 
-  			require('child_process').spawn('npm', ['run', 'start', '--', '--dev'], {
-  				stdio: ['ignore', 'inherit', 'inherit'],
-  				shell: true
+			spawn('npm', ['run', 'start', '--', '--dev'], {
+				stdio: ['ignore', 'inherit', 'inherit']
   			});
   		}
   	}
   };
+}
+
+function reload(directory) {
+	let server;
+
+	return {
+		name: 'livereload',
+		buildStart() {
+			server = livereload.createServer({ host: '0.0.0.0' });
+			server.watch(directory);
+		},
+		banner() {
+			return "(function(d){if(d.getElementById('livereloadscript'))return;var s=d.createElement('script');s.async=true;s.src='//'+(self.location.host||'localhost').split(':')[0]+':35729/livereload.js?snipver=1';s.id='livereloadscript';d.head.appendChild(s)})(document);";
+		}
+	};
 }
